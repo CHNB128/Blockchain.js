@@ -8,5 +8,11 @@
     "mongodb": "^3.1.13",
     "readline-sync": "^1.4.9",
     "socket.io": "^2.2.0"
+  },
+  "scripts": {
+    "server": "node src/server/index.js",
+    "new_wallet": "node src/client/index.js -n",
+    "new_transaction": "node src/client/index.js -t wallet_id amount",
+    "mining": "node src/client/index.js -c ../../client.config.json -m"
   }
 }
