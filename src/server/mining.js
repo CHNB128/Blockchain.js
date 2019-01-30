@@ -1,6 +1,4 @@
 const query = require('../db')
-const transaction = require('./transaction')
-const block = require('./block')
 const { sha256 } = require('../utils')
 
 function nextHash() {
@@ -15,6 +13,7 @@ function nextHash() {
             .sort({ $natural: -1 })
             .limit(1)
             .toArray((err, res) => {
+              if (err) throw err
               let lastblock = res[0]
               this.broadcast.emit('next hash', sha256(lastblock))
             })

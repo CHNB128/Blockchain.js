@@ -11,7 +11,7 @@ const mining = require('./mining')
 const port = 3000
 
 block.create(0, 0)
-block.close({ uuid: 0, password: 0 }, 0)
+block.close.call(io, ({ uuid: 0, password: 0 }, 0))
 io.on('connection', client => {
   client.use(middleware.user.validate)
   client.on('error', error => client.emit('error', error))

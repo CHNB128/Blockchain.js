@@ -1,5 +1,6 @@
 const query = require('../db')
 const transaction = require('./transaction')
+const { nextHash } = require('./mining')
 const { sha256, timestamp, checkProof } = require('../utils')
 
 function create(proof, hash) {
@@ -9,8 +10,9 @@ function create(proof, hash) {
       .sort({ $natural: -1 })
       .limit(1)
       .toArray((err, res) => {
-        let lastblock = res[0]
-        let previousHash = sha256(lastblock)
+        if (err) throw err
+        let lastBlock = res[0]
+        let previousHash = sha256(lastBlock)
         db.collection('transactions')
           .find()
           .toArray((err, transactions) => {
@@ -39,7 +41,8 @@ function close({ uuid, password }, proof) {
       .sort({ $natural: -1 })
       .limit(1)
       .toArray((err, res) => {
-        let lastblock = res[0]
+        if (err) throw err
+        let lastBlock = res[0]
         let lastHash = sha256(lastBlock)
         let check = checkProof(lastHash, proof)
         let isProofValid = check.status
@@ -50,25 +53,10 @@ function close({ uuid, password }, proof) {
           create(proof, check.hash)
           console.log('[ INF ] close', lastHash)
           this.broadcast.emit('block closed', lastHash)
-
-          db.collection('transactions')
-            .find()
-            .count((err, count) => {
-              if (err) throw err
-              if (count >= 5) {
-                db.collection('chain')
-                  .find()
-                  .sort({ $natural: -1 })
-                  .limit(1)
-                  .toArray((err, res) => {
-                    let lastblock = res[0]
-                    this.broadcast.emit('next hash', sha256(lastblock))
-                  })
-              }
-            })
         }
       })
   })
+  nextHash.call(this)
 }
 
 module.exports = {

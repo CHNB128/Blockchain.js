@@ -1,5 +1,6 @@
 const query = require('../db')
-const { sha256, timestamp } = require('../utils')
+const { nextHash } = require('./mining')
+const { timestamp } = require('../utils')
 
 function create({ uuid, _ }, { recipient, amount }) {
   query(db => {
@@ -31,30 +32,9 @@ function create({ uuid, _ }, { recipient, amount }) {
     })
 
     this.emit('resolve')
-
-    db.collection('transactions')
-      .find()
-      .count((err, count) => {
-        if (err) throw err
-        if (count >= 5) {
-          db.collection('chain')
-            .find()
-            .sort({ $natural: -1 })
-            .limit(1)
-            .toArray((err, res) => {
-              let lastblock = res[0]
-              this.broadcast.emit('next hash', sha256(lastblock))
-            })
-        }
-      })
   })
+  nextHash.call(this)
 }
-
-// function count(callback) {
-//   query(db => {
-
-//   })
-// }
 
 /**
   Clear transactions pool
